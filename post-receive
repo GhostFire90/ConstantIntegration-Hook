@@ -1,0 +1,5 @@
+#!/bin/bash
+OLD=$(</dev/stdin)
+NEW=$(</dev/stdin)
+REFNAME=$(</dev/stdin)
+echo "${OLD} ${NEW} ${REFNAME}" > /dev/udp/127.0.0.1/6005 

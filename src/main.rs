@@ -1,14 +1,16 @@
-use serenity::all::{ChannelId, Ready};
+use serenity::all::{ChannelId, CreateAttachment, CreateEmbed, CreateMessage, Ready};
 use serenity::async_trait;
 use serenity::model::channel::Message;
 
 use serenity::prelude::*;
 use dotenv::dotenv;
 use std::env;
-use std::fs::OpenOptions;
+use std::fs::{remove_file, OpenOptions};
 use std::io::{BufWriter, Read, Write};
+use std::process::Command;
 use std::sync::atomic::AtomicBool;
 use tokio::net::UdpSocket;
+
 
 static mut CHANNEL_ID : Option<ChannelId> = None;
 
@@ -29,6 +31,7 @@ impl EventHandler for Handler{
         }
     }
     async fn ready(&self, ctx : Context, _ : Ready){
+        println!("Ready!");
        self.is_ready.load(std::sync::atomic::Ordering::Relaxed);
        tokio::spawn(async move{
         hook_listener(ctx).await
@@ -48,11 +51,44 @@ async fn hook_listener(ctx : Context){
             if let Some(c) = CHANNEL_ID{
                 let mut message_vec = buf.to_vec();
                 message_vec.resize(size, 0);
-                c.say(&ctx, format!("Hook Triggered {}", String::from_utf8_unchecked(message_vec))).await.unwrap();
+                let msg_str = String::from_utf8_unchecked(message_vec);
+                let mut ws_itr = msg_str.split_whitespace();
+                let embed = CreateEmbed::new()
+                    .title("Push Recieved")
+                    .field("Old-SHA", ws_itr.next().unwrap(), false)
+                    .field("New-SHA", ws_itr.next().unwrap(), false)
+                    .field("Refspec", ws_itr.next().unwrap(), false);
+                let builder = CreateMessage::new().embed(embed);
+                c.send_message(&ctx, builder).await.unwrap();
+
+                let test_out = run_tests();
+                let mut f = OpenOptions::new().create(true).write(true).open("./attachment.txt").unwrap();
+                let _ = f.write_all(test_out.as_bytes());
+                drop(f);
+
+                let attachment = CreateAttachment::path("./attachment.txt").await.unwrap();
+                let builder = CreateMessage::new().add_file(attachment);
+                c.send_message(&ctx, builder).await.unwrap();
+                let _ = remove_file("./attachment.txt");
+                
             }
         }
     }
 
+}
+
+
+fn run_tests() -> String{
+
+    // let repo_addr = env::var("REPO_ADDRESS").expect("Set $REPO_ADDRESS pls");
+    
+    // let _git_output = Command::new("git").arg("clone").arg(repo_addr).arg("./repo_dir/").output().expect("Couldnt clone");
+    // let _poetry_install_output = Command::new("poetry").arg("install").current_dir("./repo_dir/CodeFriend").output().expect("Couldnt install requirements");
+    let poetry_run_output = Command::new("bash").arg("./event-script").output().unwrap();
+
+    // let _ = Command::new("rm").arg("-rf").arg("./repo_dir/").status().expect("failed to rm");
+
+    unsafe{String::from_utf8_unchecked(poetry_run_output.stdout)}
 }
 
 #[tokio::main]

@@ -1,0 +1,9 @@
+services:
+  ci-hook:
+    image: ci-hooks:latest
+    restart: unless-stopped
+    ports:
+      - '6005:6005/udp'
+    volumes:
+      - '/data/:/data/'
+      - '/home/rei/.git-credentials:/.git-credentials'

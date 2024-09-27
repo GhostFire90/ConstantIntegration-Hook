@@ -4,18 +4,6 @@ RUN rustup target add x86_64-unknown-linux-musl
 RUN apt update && apt install -y musl-tools musl-dev
 RUN update-ca-certificates
 
-ENV USER=ci-hooks
-ENV UID=10001
-
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    "${USER}"
-
 WORKDIR /ci-hooks
 
 COPY ./ .
@@ -23,15 +11,22 @@ COPY ./ .
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
 
-FROM scratch
-COPY --from=build /etc/passwd /etc/passwd
-COPY --from=build /etc/group /etc/group
-
-COPY --from=build /ci-hooks/target/x86_64-unknown-linux-musl/release/constant-integration-hook ./
-COPY ./.env .
-
-USER ci-hooks:ci-hooks
+FROM python:3.12-alpine
 
 VOLUME [ "/data" ]
+VOLUME [ "/.git-credentials" ]
 
-CMD [ "./constant-integration-hook" ]
+
+RUN apk update
+RUN apk add git bash
+RUN pip install poetry
+
+COPY ./.env .
+COPY ./event-script .
+COPY ./startup-script .
+COPY --from=build /ci-hooks/target/x86_64-unknown-linux-musl/release/constant-integration-hook ./
+
+
+
+
+CMD [ "./startup-script" ]
