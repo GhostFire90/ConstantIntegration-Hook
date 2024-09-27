@@ -80,13 +80,9 @@ async fn hook_listener(ctx : Context){
 
 fn run_tests() -> String{
 
-    // let repo_addr = env::var("REPO_ADDRESS").expect("Set $REPO_ADDRESS pls");
-    
-    // let _git_output = Command::new("git").arg("clone").arg(repo_addr).arg("./repo_dir/").output().expect("Couldnt clone");
-    // let _poetry_install_output = Command::new("poetry").arg("install").current_dir("./repo_dir/CodeFriend").output().expect("Couldnt install requirements");
     let poetry_run_output = Command::new("bash").arg("./event-script").output().unwrap();
 
-    // let _ = Command::new("rm").arg("-rf").arg("./repo_dir/").status().expect("failed to rm");
+
 
     unsafe{String::from_utf8_unchecked(poetry_run_output.stdout)}
 }
