@@ -1,0 +1,4 @@
+/target
+.env
+/test_repo/
+.vscode/
