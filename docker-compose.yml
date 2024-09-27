@@ -5,5 +5,5 @@ services:
     ports:
       - '6005:6005/udp'
     volumes:
-      - '/data/:/data/'
-      - '/home/rei/.git-credentials:/.git-credentials'
+      - '<host_data>:/data/'
+      - '<host_credentials>:/.git-credentials'

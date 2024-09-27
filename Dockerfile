@@ -10,7 +10,6 @@ COPY ./ .
 
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
-
 FROM python:3.12-alpine
 
 VOLUME [ "/data" ]
@@ -18,15 +17,11 @@ VOLUME [ "/.git-credentials" ]
 
 
 RUN apk update
-RUN apk add git bash
-RUN pip install poetry
+# Add requirements here
 
 COPY ./.env .
 COPY ./event-script .
 COPY ./startup-script .
 COPY --from=build /ci-hooks/target/x86_64-unknown-linux-musl/release/constant-integration-hook ./
-
-
-
 
 CMD [ "./startup-script" ]

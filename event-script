@@ -1,6 +1,4 @@
 #!/bin/bash
+#   Put any and all commands you want executed on a push in this file
 
-REPO_ADDRESS=https://git.digipen.edu/projects/autologic
-git clone $REPO_ADDRESS ./repo_dir > /dev/null 2>&1
-cd ./repo_dir/CodeFriend && poetry install > /dev/null 2>&1 && poetry run pytest
-cd ../../ && rm -rf repo_dir/ > /dev/null 2>&1
+echo "Hook triggered"

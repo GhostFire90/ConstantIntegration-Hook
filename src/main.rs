@@ -99,7 +99,10 @@ async fn main() {
         let mut channel : String = String::new();
         f.read_to_string(&mut channel).unwrap();
         
-        CHANNEL_ID = Some(channel.lines().next().unwrap().parse().unwrap());
+        CHANNEL_ID = match channel.lines().next().unwrap().parse(){
+            Ok(val) => Some(val),
+            Err(_) => None
+        };
     }
 
     let mut client = 
