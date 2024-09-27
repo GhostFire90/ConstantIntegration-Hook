@@ -39,14 +39,16 @@ impl EventHandler for Handler{
 async fn hook_listener(ctx : Context){
     let port = env::var("SERVER_PORT").expect("Set $SERVER_PORT please");
     let socket = UdpSocket::bind(format!("0.0.0.0:{port}")).await.unwrap();
-    let mut buf : [u8; 10] = [0; 10];
+    let mut buf : [u8; 1500] = [0; 1500];
 
     loop{
-        let _ = socket.recv_from(&mut buf).await.unwrap();
+        let (size, _) = socket.recv_from(&mut buf).await.unwrap();
         println!("hook triggered");
         unsafe {
             if let Some(c) = CHANNEL_ID{
-                c.say(&ctx, "Hook Triggered").await.unwrap();
+                let mut message_vec = buf.to_vec();
+                message_vec.resize(size, 0);
+                c.say(&ctx, format!("Hook Triggered {}", String::from_utf8_unchecked(message_vec))).await.unwrap();
             }
         }
     }
