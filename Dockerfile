@@ -18,6 +18,7 @@ VOLUME [ "/.git-credentials" ]
 
 RUN apk update
 # Add requirements here
+RUN apk add --no-cache git
 
 COPY ./.env .
 COPY ./event-script .
